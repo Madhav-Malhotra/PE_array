@@ -4,25 +4,26 @@
 
 module pe #(
     // Parameters for data precision and size of local register file
-    parameter PRECISION = 16,
+    parameter IN_PRECISION = 16,
+    parameter OUT_PRECISION = 16,   // must be >= IN_PRECISION
     parameter REG_SIZE = 4
 ) (
     input wire clk,                 // Clock signal
     input wire rst,                 // Reset signal
 
-    input wire [PRECISION-1:0] act, // Input activation
-    input wire [PRECISION-1:0] wgt, // Input weight
+    input wire [IN_PRECISION-1:0] act, // Input activation
+    input wire [IN_PRECISION-1:0] wgt, // Input weight
 
     input wire store,               // Store the weight in the reg file
     input wire reuse,               // Reuse the weight in the reg file
     input wire [REG_SIZE-1:0] addr, // Address to read/write from reg file
     
     input wire finish,              // End of current dot product, send output
-    output wire [PRECISION-1:0] out // Output data
+    output wire [OUT_PRECISION-1:0] out // Output data
 );
 
     // Init local register file. Reserve first reg for temporal accumulation
-    reg [PRECISION-1:0] regfile [REG_SIZE-1:0];
+    reg [OUT_PRECISION-1:0] regfile [REG_SIZE-1:0];
     
     // Internal behaviour: multiply act * weight and accumulate into regfile
     always @(posedge clk) begin
@@ -50,6 +51,7 @@ module pe #(
             // If we are at the end of the dot product, send the output
             if (finish) begin
                 out <= regfile[0];
+                regfile[0] <= 0; // prep for next dot product
             end
         end
     end
