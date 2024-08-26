@@ -25,7 +25,7 @@ module pe #(
     reg [PRECISION-1:0] regfile [REG_SIZE-1:0];
     
     // Internal behaviour: multiply act * weight and accumulate into regfile
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clk) begin
         if (rst) begin
             // Empty the register file
             for (int i=0; i<REG_SIZE; i=i+1) begin
@@ -33,7 +33,7 @@ module pe #(
             end
 
             // Gate the output
-            out <= PRECISION'(z);
+            out <= {PRECISION{1'bz}};
         end else begin
             // Store the weight in the reg file
             if (store) begin
