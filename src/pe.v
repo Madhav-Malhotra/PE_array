@@ -1,3 +1,6 @@
+`default_nettype none
+`timescale 1ns / 1ps
+
 // A processing element (PE) module that performs a multiply and accumulate operation.
 // A temporal dataflow is used where accumulation occurs over multiple clock cycles.
 // We use a weight stationary dataflow where the weight can be stored in the reg file for reuse

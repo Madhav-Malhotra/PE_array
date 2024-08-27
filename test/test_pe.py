@@ -3,10 +3,8 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, FallingEdge, ClockCycles
 
-clocks_per_phase = 10
-
 async def reset(dut):
-    # Zeroo all inputs
+    # Zero all inputs
     dut.act.value = 0
     dut.wgt.value = 0
     dut.store.value = 0
@@ -15,46 +13,74 @@ async def reset(dut):
     dut.finish.value = 0
 
     # Reset the DUT
-    dut.reset.value   = 1
+    dut.rst.value   = 1
 
     # Wait for reset to stabilise
     await ClockCycles(dut.clk, 5)
     
     # Deassert the reset
-    dut.reset.value = 0
+    dut.rst.value = 0
 
     await ClockCycles(dut.clk, 5)
 
 @cocotb.test()
-async def test_all(dut):
+async def test_reset(dut):
     # Start a clock
     clock = Clock(dut.clk, 10, units="us")
     cocotb.start_soon(clock.start())
 
-    # Test reset
     await reset(dut)
+    
+    # Check that reset cleared internal regfile and output
     assert dut.out == 0
     for i in range(4):
         assert dut.regfile[i] == 0
 
-    # Test multiplications without regfile or dot products
+    await reset(dut)
+
+@cocotb.test()
+async def test_multiplication_no_regfile_no_dot(dut):
+    # Start a clock
+    clock = Clock(dut.clk, 10, units="us")
+    cocotb.start_soon(clock.start())
+
+    await reset(dut)
+
+    # Run ten tests
     for _ in range(10):
+        # Generate random activations and weights
         dut.act.value = random.randint(0, 255)
         dut.wgt.value = random.randint(0, 255)
+
+        # Prevent dot product from accumulating
         dut.finish.value = 1
+
+        # Check that output is product of act and wgt
         await ClockCycles(dut.clk, 1)
-        assert dut.out == dut.act * dut.wgt
+        assert dut.out.value == dut.act.value * dut.wgt.value
     
     await reset(dut)
 
-    # Test multiplications without regfile but with dot products
+@cocotb.test()
+async def test_multiplication_no_regfile_with_dot(dut):
+    # Start a clock
+    clock = Clock(dut.clk, 10, units="us")
+    cocotb.start_soon(clock.start())
+
+    await reset(dut)
+
+    # Run ten tests
     total = 0
     for _ in range(10):
+        # Generate random activations and weights
         dut.act.value = random.randint(0, 255)
         dut.wgt.value = random.randint(0, 255)
+
+        # Accumulate dot product
         dut.finish.value = 0
         total = total + dut.act * dut.wgt
 
+        # Check that output is MAC of act and wgt
         await ClockCycles(dut.clk, 1)
         assert dut.regfile[0] == total
     
@@ -64,16 +90,26 @@ async def test_all(dut):
     dut.finish.value = 1
     total = total + dut.act * dut.wgt
 
+    # Check that output is as expected and regfile prepped for next dot product
     await ClockCycles(dut.clk, 1)
     assert dut.out == total
     assert dut.regfile[0] == 0
 
     await reset(dut)
 
-    # Test multiplications with regfile and dot products
+
+
+@cocotb.test()
+async def test_multiplication_with_regfile_with_dot(dut):
+    # Start a clock
+    clock = Clock(dut.clk, 10, units="us")
+    cocotb.start_soon(clock.start())
+
+    # Initial conditions
+    await reset(dut)
     total = 0
 
-    # Generate a weight
+    # Start accumulating dot product with random weight and activation
     dut.finish.value = 0
     dut.act.value = random.randint(0, 255)
     dut.wgt.value = random.randint(0, 255)
@@ -83,7 +119,7 @@ async def test_all(dut):
     dut.store.value = 1
     dut.addr.value = 1
 
-    # Check multiplication and weight storage
+    # Check product as expected and weight storage
     await ClockCycles(dut.clk, 1)
     assert dut.regfile[0] == total
     assert dut.regfile[1] == dut.wgt.value
