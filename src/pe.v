@@ -5,21 +5,21 @@
 module pe #(
     // Parameters for data precision and size of local register file
     parameter IN_PRECISION = 16,
-    parameter OUT_PRECISION = 16,   // must be >= IN_PRECISION
+    parameter OUT_PRECISION = 16,      // must be >= IN_PRECISION
     parameter REG_SIZE = 4
 ) (
-    input wire clk,                 // Clock signal
-    input wire rst,                 // Reset signal
+    input wire clk,                    // Clock signal
+    input wire rst,                    // Reset signal
 
     input wire [IN_PRECISION-1:0] act, // Input activation
     input wire [IN_PRECISION-1:0] wgt, // Input weight
 
-    input wire store,               // Store the weight in the reg file
-    input wire reuse,               // Reuse the weight in the reg file
-    input wire [REG_SIZE-1:0] addr, // Address to read/write from reg file
+    input wire store,                  // Store the weight in the reg file
+    input wire reuse,                  // Reuse the weight in the reg file
+    input wire [REG_SIZE-1:0] addr,    // Address to read/write from reg file
     
-    input wire finish,              // End of current dot product, send output
-    output wire [OUT_PRECISION-1:0] out // Output data
+    input wire finish,                 // End of current dot product, send output
+    output reg [OUT_PRECISION-1:0] out // Output data
 );
 
     // Init local register file. Reserve first reg for temporal accumulation
@@ -34,7 +34,7 @@ module pe #(
             end
 
             // Gate the output
-            out <= {PRECISION{1'bz}};
+            out <= 0;
         end else begin
             // Store the weight in the reg file
             if (store) begin
