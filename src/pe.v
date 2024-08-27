@@ -33,7 +33,7 @@ module pe #(
                 regfile[i] <= 0;
             end
 
-            // Gate the output
+            // Reset the output
             out <= 0;
         end else begin
             // Store the weight in the reg file
