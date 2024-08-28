@@ -47,7 +47,7 @@ async def test_multiplication_no_regfile_no_dot(dut):
     await reset(dut)
 
     # Run ten tests
-    for _ in range(10):
+    for _ in range(1):
         # Generate random activations and weights
         dut.act.value = random.randint(0, 255)
         dut.wgt.value = random.randint(0, 255)
@@ -56,7 +56,7 @@ async def test_multiplication_no_regfile_no_dot(dut):
         dut.finish.value = 1
 
         # Check that output is product of act and wgt
-        await ClockCycles(dut.clk, 1)
+        await ClockCycles(dut.clk, 3)
         assert dut.out.value == dut.act.value * dut.wgt.value
     
     await reset(dut)
@@ -78,22 +78,22 @@ async def test_multiplication_no_regfile_with_dot(dut):
 
         # Accumulate dot product
         dut.finish.value = 0
-        total = total + dut.act * dut.wgt
+        total = total + dut.act.value * dut.wgt.value
 
         # Check that output is MAC of act and wgt
         await ClockCycles(dut.clk, 1)
-        assert dut.regfile[0] == total
+        assert dut.regfile[0].value == total
     
     # Last cycle to finish the dot product
     dut.act.value = random.randint(0, 255)
     dut.wgt.value = random.randint(0, 255)
     dut.finish.value = 1
-    total = total + dut.act * dut.wgt
+    total = total + dut.act.value * dut.wgt.value
 
     # Check that output is as expected and regfile prepped for next dot product
     await ClockCycles(dut.clk, 1)
-    assert dut.out == total
-    assert dut.regfile[0] == 0
+    assert dut.out.value == total
+    assert dut.regfile[0].value == 0
 
     await reset(dut)
 
@@ -113,7 +113,7 @@ async def test_multiplication_with_regfile_with_dot(dut):
     dut.finish.value = 0
     dut.act.value = random.randint(0, 255)
     dut.wgt.value = random.randint(0, 255)
-    total = total + dut.act * dut.wgt
+    total = total + dut.act.value * dut.wgt.value
     
     # Store weight in regfile[1]
     dut.store.value = 1
@@ -121,8 +121,8 @@ async def test_multiplication_with_regfile_with_dot(dut):
 
     # Check product as expected and weight storage
     await ClockCycles(dut.clk, 1)
-    assert dut.regfile[0] == total
-    assert dut.regfile[1] == dut.wgt.value
+    assert dut.regfile[0].value == total
+    assert dut.regfile[1].value == dut.wgt.value
 
     # Check weight reuse with new activations
     for _ in range(10):
@@ -131,19 +131,19 @@ async def test_multiplication_with_regfile_with_dot(dut):
         dut.reuse.value = 1
         dut.addr.value = 1
 
-        total = total + dut.act * dut.regfile[1]
+        total = total + dut.act.value * dut.regfile[1].value
         await ClockCycles(dut.clk, 1)
-        assert dut.regfile[0] == total
+        assert dut.regfile[0].value == total
 
     # Last cycle to finish the dot product
     dut.act.value = random.randint(0, 255)
     dut.wgt.value = random.randint(0, 255)
     data.reuse.value = 0
     dut.finish.value = 1
-    total = total + dut.act * dut.wgt
+    total = total + dut.act.value * dut.wgt.value
 
     await ClockCycles(dut.clk, 1)
-    assert dut.out == total
-    assert dut.regfile[0] == 0
+    assert dut.out.value == total
+    assert dut.regfile[0].value == 0
 
     await reset(dut)

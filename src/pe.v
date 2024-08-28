@@ -8,7 +8,7 @@
 module pe #(
     // Parameters for data precision and size of local register file
     parameter IN_PRECISION = 16,
-    parameter OUT_PRECISION = 16,      // must be >= IN_PRECISION
+    parameter OUT_PRECISION = 32,      // must be >= IN_PRECISION
     parameter REG_SIZE = 4
 ) (
     input wire clk,                    // Clock signal
@@ -54,7 +54,7 @@ module pe #(
             // If we are at the end of the dot product, send the output
             if (finish) begin
                 out <= regfile[0];
-                regfile[0] <= 0; // prep for next dot product
+                //regfile[0] <= 0; // prep for next dot product
             end
         end
     end
