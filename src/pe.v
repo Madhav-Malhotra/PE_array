@@ -54,6 +54,7 @@ module pe #(
             // If we are at the end of the dot product, send the output
             if (finish) begin
                 out <= regfile[0];
+                //? If I include this, the output is 0. Why?
                 regfile[0] <= 0; // prep for next dot product
             end
         end
