@@ -1,0 +1,41 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Fri Sep  6 20:23:57 2024
+[*]
+[dumpfile] "/home/mdv_mlhtr/software/projects/unit4/PE_array/test/pe.vcd"
+[dumpfile_mtime] "Fri Sep  6 20:20:32 2024"
+[dumpfile_size] 3598
+[savefile] "/home/mdv_mlhtr/software/projects/unit4/PE_array/test/pe.gtkw"
+[timestart] 43900000
+[size] 1920 973
+[pos] -27 -24
+*-26.100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 297
+[signals_width] 166
+[sst_expanded] 1
+[sst_vpaned_height] 288
+@28
+pe.clk
+pe.rst
+@200
+-
+@24
+pe.act[15:0]
+pe.wgt[15:0]
+@200
+-
+@28
+pe.reuse
+pe.store
+@24
+pe.addr[3:0]
+@200
+-
+@28
+pe.finish
+@24
+pe.\regfile[0][31:0]
+@25
+pe.out[31:0]
+[pattern_trace] 1
+[pattern_trace] 0
