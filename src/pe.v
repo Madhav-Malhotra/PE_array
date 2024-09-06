@@ -21,15 +21,19 @@ module pe #(
     input wire reuse,                  // Reuse the weight in the reg file
     input wire [REG_SIZE-1:0] addr,    // Address to read/write from reg file
     
-    input wire finish,                 // End of current dot product, send output
+    input wire update_out,             // End of current dot product, send output
     output reg [OUT_PRECISION-1:0] out // Output data
 );
 
     // Init local register file. Reserve first reg for temporal accumulation
     reg [OUT_PRECISION-1:0] regfile [REG_SIZE-1:0];
+
+    // Local flag to reset the accumulation in the regfile, not add on
+    reg start_new_dot_product; 
     
     // Internal behaviour: multiply act * weight and accumulate into regfile
     always @(posedge clk) begin
+        // State A: Resetting
         if (rst) begin
             // Empty the register file
             for (int i=0; i<REG_SIZE; i=i+1) begin
@@ -38,24 +42,41 @@ module pe #(
 
             // Reset the output
             out <= 0;
-        end else begin
+            start_new_dot_product <= 0;
+        end 
+        
+        // State B: MAC operation
+        else begin
             // Store the weight in the reg file
             if (store) begin
                 regfile[addr] <= wgt;
             end 
 
-            // Multiply and accumulate 
-            if (reuse) begin                                    // with regfile
-                regfile[0] <= regfile[0] + act * regfile[addr];
-            end else begin                                      // with new input
-                regfile[0] <= regfile[0] + act * wgt;
+            // Multiply and accumulate starting from 0 accumulated
+            if (start_new_dot_product) begin
+                if (reuse) begin                                // with regfile
+                    // try a pipelined multiplier here to reduce critical path
+                    regfile[0] <= act * regfile[addr];
+                end else begin                                  // with new input
+                    regfile[0] <= act * wgt;    
+                end
+                
+                start_new_dot_product <= 0;
+            end 
+
+            // multiply and accumulate starting with existing accumulation
+            else begin
+                if (reuse) begin                                    // with regfile
+                    regfile[0] <= regfile[0] + act * regfile[addr];
+                end else begin                                      // with new input
+                    regfile[0] <= regfile[0] + act * wgt;
+                end
             end
 
             // If we are at the end of the dot product, send the output
-            if (finish) begin
+            if (update_out) begin
                 out <= regfile[0];
-                //? If I include this, the output is 0. Why?
-                regfile[0] <= 0; // prep for next dot product
+                start_new_dot_product <= 1; // prep for next dot product next cycle
             end
         end
     end

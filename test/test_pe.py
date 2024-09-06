@@ -10,7 +10,7 @@ async def reset(dut):
     dut.store.value = 0
     dut.reuse.value = 0
     dut.addr.value = 0
-    dut.finish.value = 0
+    dut.update_out.value = 0
 
     # Reset the DUT
     dut.rst.value = 1
@@ -49,7 +49,7 @@ async def test_multiplication_no_regfile_no_dot(dut):
     random.seed(42)
 
     # Run ten tests
-    for _ in range(1):
+    for _ in range(10):
         # Generate random activations and weights
         a = random.randint(0, 255)
         w = random.randint(0, 255)
@@ -58,7 +58,7 @@ async def test_multiplication_no_regfile_no_dot(dut):
         dut.wgt.value = w
 
         # Prevent dot product from accumulating
-        dut.finish.value = 1
+        dut.update_out.value = 1
 
         # Check that output is product of act and wgt
         await ClockCycles(dut.clk, 3)
@@ -87,21 +87,21 @@ async def test_multiplication_no_regfile_with_dot(dut):
         dut.wgt.value = w
 
         # Accumulate dot product
-        dut.finish.value = 0
+        dut.update_out.value = 0
         total = total + a * w
 
         # Check that output is MAC of act and wgt
         await ClockCycles(dut.clk, 3)
         assert dut.regfile[0].value == total
     
-    # Last cycle to finish the dot product
+    # Last cycle to update_out the dot product
     a = random.randint(0, 255)
     w = random.randint(0, 255)
 
     dut.act.value = a
     dut.wgt.value = w
 
-    dut.finish.value = 1
+    dut.update_out.value = 1
     total = total + a * w
 
     # Check that output is as expected and regfile prepped for next dot product
@@ -125,7 +125,7 @@ async def test_multiplication_with_regfile_with_dot(dut):
     random.seed(42)
 
     # Start accumulating dot product with random weight and activation
-    dut.finish.value = 0
+    dut.update_out.value = 0
     a = random.randint(0, 255)
     w = random.randint(0, 255)
 
@@ -154,14 +154,14 @@ async def test_multiplication_with_regfile_with_dot(dut):
         await ClockCycles(dut.clk, 3)
         assert dut.regfile[0].value == total
 
-    # Last cycle to finish the dot product
+    # Last cycle to update_out the dot product
     a = random.randint(0, 255)
     w = random.randint(0, 255)
     dut.act.value = a
     dut.wgt.value = w
 
     data.reuse.value = 0
-    dut.finish.value = 1
+    dut.update_out.value = 1
     total = total + a * w
 
     await ClockCycles(dut.clk, 3)
